@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ListView;
 
+import com.is416.tasks.adapter.TaskListAdapter;
 import com.is416.tasks.model.Task;
 
 import java.util.ArrayList;
@@ -16,24 +17,30 @@ public class TasksActivity extends AppCompatActivity {
     private Context mContext;
     private List<Task> tasks;
     private ListView content;
+    private TaskListAdapter taskListAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tasks);
 
-        bindView();
         init();
-    }
-
-    private void bindView(){
-        this.content = findViewById(R.id.content);
+        bindView();
     }
 
     private void init(){
         this.mContext = this;
         this.tasks = getTasks();
+        this.taskListAdapter = new TaskListAdapter(this.tasks,this.mContext);
     }
+
+    private void bindView(){
+        this.content = findViewById(R.id.content);
+
+        this.content.setAdapter(this.taskListAdapter);
+    }
+
+
 
     private List<Task> getTasks(){
         List<Task> tasks = new ArrayList<>();
