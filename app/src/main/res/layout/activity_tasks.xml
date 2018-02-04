@@ -10,11 +10,15 @@
     <ListView
         android:id="@+id/content"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:divider="@null">
+        android:layout_height="match_parent"
+        android:divider="@null"/>
 
-    </ListView>
-
+    <LinearLayout
+        android:id="@+id/shadow"
+        android:orientation="vertical"
+        android:focusable="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
 
 </LinearLayout>

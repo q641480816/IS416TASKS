@@ -10,6 +10,7 @@ public class Task {
     private Date created;
     private String content;
     private boolean isComplete;
+    private Date completed;
 
     public Task(Date created, String content, boolean isComplete) {
         this.created = created;
@@ -33,8 +34,17 @@ public class Task {
         this.content = content;
     }
 
+    public Date getCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(Date completed) {
+        this.completed = completed;
+    }
+
     public boolean isComplete() {
         return isComplete;
+
     }
 
     public void setComplete(boolean complete) {
