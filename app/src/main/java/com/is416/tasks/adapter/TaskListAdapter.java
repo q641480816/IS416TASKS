@@ -36,7 +36,7 @@ public class TaskListAdapter extends BaseAdapter {
     private SimpleDateFormat sdf = new SimpleDateFormat(" HH:mm");
     private int oldLength;
 
-    public TaskListAdapter(List<Task> tasks, Context mContext, String master) {
+    public TaskListAdapter(List<Task> tasks, Context mContext, String master, boolean isToday) {
         this.tasks = tasks;
         this.mContext = mContext;
         this.master = master;
@@ -65,7 +65,7 @@ public class TaskListAdapter extends BaseAdapter {
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
         Task t = tasks.get(i);
-        System.out.println(oldLength - tasks.size());
+        //System.out.println(oldLength - tasks.size());
         if(t.getCreated() == null){
             view = drawSeparator(LayoutInflater.from(mContext).inflate(R.layout.list_seprater,viewGroup,false));
         }else if(t.isComplete()){

@@ -1,29 +1,22 @@
 package com.is416.tasks;
 
 import android.content.Context;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.LinearLayout;
-import android.widget.ListView;
 
-import com.is416.tasks.adapter.TaskListAdapter;
-import com.is416.tasks.model.Task;
+import com.is416.tasks.adapter.TaskFragmentPagerAdapter;
 import com.is416.tasks.util.ActivityManager;
 import com.is416.tasks.util.KeyboardChangeListener;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+public class TasksActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener{
 
-public class TasksActivity extends AppCompatActivity {
-
+    public static final int PAGE_ONE = 0;
+    public static final int PAGE_TWO = 1;
     private static final String name =  "TASK_LIST_ACTIVITY";
     private Context mContext;
-    private List<Task> tasks;
-    private ListView content;
-    private TaskListAdapter taskListAdapter;
-    private LinearLayout shadow;
-
+    private ViewPager viewPager;
+    private TaskFragmentPagerAdapter taskFragmentPagerAdapter;
     private KeyboardChangeListener softKeyboardStateHelper;
 
     @Override
@@ -39,31 +32,18 @@ public class TasksActivity extends AppCompatActivity {
 
     private void init(){
         this.mContext = this;
-        this.tasks = getTasks();
-        this.taskListAdapter = new TaskListAdapter(this.tasks,this.mContext,name);
+        this.taskFragmentPagerAdapter = new TaskFragmentPagerAdapter(getSupportFragmentManager());
         this.softKeyboardStateHelper = new KeyboardChangeListener(this);
     }
 
     private void bindView(){
-        this.content = findViewById(R.id.content);
-        this.shadow = findViewById(R.id.shadow);
-
-        this.content.setAdapter(this.taskListAdapter);
+        this.viewPager = findViewById(R.id.viewPager);
+        this.viewPager.setAdapter(this.taskFragmentPagerAdapter);
+        this.viewPager.setCurrentItem(0);
     }
 
     private void addListener(){
-        softKeyboardStateHelper.setKeyBoardListener(new KeyboardChangeListener.KeyBoardListener() {
-            @Override
-            public void onKeyboardChange(boolean isShow, int keyboardHeight) {
-                if (isShow) {
-                    //TODO
-                } else {
-                    System.out.println("cleared");
-                    taskListAdapter.clearFocus();
-                    shadow.requestFocus();
-                }
-            }
-        });
+
     }
 
     public boolean addTask(){
@@ -76,22 +56,36 @@ public class TasksActivity extends AppCompatActivity {
         return true;
     }
 
-
-
-    private List<Task> getTasks(){
-        List<Task> tasks = new ArrayList<>();
-        for (int i = 0; i < 3; i++){
-            tasks.add(new Task(new Date(), "test 1", false));
-        }
-        tasks.add(new Task(null, "test 1", false));
-        return tasks;
-    }
-
-
-
     @Override
     public void finish() {
         super.finish();
         ActivityManager.finishActivity(name);
+    }
+
+    public Context getContext(){
+        return this.mContext;
+    }
+
+    public String getName(){
+        return name;
+    }
+
+    public void setViewPager(int i){
+        this.viewPager.setCurrentItem(i);
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
     }
 }

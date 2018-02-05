@@ -3,4 +3,5 @@
 
     <string name="add_task"> + Add Task</string>
     <string name="complete_time">Completed at </string>
+    <string name="today">Today\'s Tasks</string>
 </resources>

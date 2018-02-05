@@ -26,4 +26,10 @@ public class ActivityManager {
     public static void finishActivity(String name){
         activities.remove(name);
     }
+
+    private static void finishAll(){
+        for(Activity activity: activities.values()){
+            activity.finish();
+        }
+    }
 }
