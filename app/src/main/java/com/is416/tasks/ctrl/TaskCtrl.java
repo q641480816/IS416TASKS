@@ -70,10 +70,10 @@ public class TaskCtrl {
         return tasks;
     }
 
-    public static Task markComplete(Context context, Task task){
+    public static Task markComplete(Context context, Task task, boolean isToComplete){
         HashMap<String, String> changes = new HashMap<>();
-        task.setCompleted(new Date());
-        changes.put("completed", task.getCompleted().getTime() + "");
+        task.setCompleted(isToComplete ? new Date() : null);
+        changes.put("completed", isToComplete ? task.getCompleted().getTime() + "" : null);
         if (TaskDao.updateTask(context,changes,task.getId())){
             return task;
         }else {

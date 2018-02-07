@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -65,8 +66,10 @@ public class TaskListAdapter extends BaseAdapter {
 
     @Override
     public boolean isEnabled(int i) {
-        return false;
+        return tasks.get(i).isComplete();
     }
+
+
 
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
@@ -98,22 +101,12 @@ public class TaskListAdapter extends BaseAdapter {
         ImageView checkbox = view.findViewById(R.id.checkbox);
         if (this.isToday) {
             checkbox.setOnClickListener(v -> {
-                Task t = TaskCtrl.markComplete(mContext, tasks.get(i));
-                if (t != null) {
-                    tasks.remove(i);
-                    tasks.add(t);
-                    notifyDataSetChanged();
-                    Toast.makeText(mContext, "Task Completed", Toast.LENGTH_SHORT).show();
-                }
+                markComplete(i, true);
             });
         }else{
             checkbox.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_delete_black_24dp));
             checkbox.setOnClickListener(v -> {
-                if (TaskCtrl.deleteTask(mContext,tasks.get(i).getId())){
-                    tasks.remove(i);
-                    Toast.makeText(mContext, "Task Deleted", Toast.LENGTH_SHORT).show();
-                    notifyDataSetChanged();
-                }
+                delete(i);
             });
         }
         etv.setText(task.getContent());
@@ -135,24 +128,56 @@ public class TaskListAdapter extends BaseAdapter {
         TextView tv = view.findViewById(R.id.addTask);
         tv.setTypeface(null, Typeface.ITALIC);
         tv.setOnClickListener(v -> {
-            if(((TasksActivity)ActivityManager.getActivity(master)).addTask()){
-                Calendar c = Calendar.getInstance();
-                if (!this.isToday){
-                    c.add(Calendar.DAY_OF_MONTH,1);
+            create();
+        });
+        return view;
+    }
+
+    public void create(){
+        Calendar c = Calendar.getInstance();
+        if (!this.isToday){
+            c.add(Calendar.DAY_OF_MONTH,1);
+        }
+        Task t = new Task((new Date()).getTime()+"",c.getTime(),"");
+        if (TaskCtrl.createTask(mContext,t)){
+            for (int i = 0; i < tasks.size(); i++){
+                if(tasks.get(i).getCreated() == null){
+                    tasks.add(i,t);
+                    break;
                 }
-                Task t = new Task((new Date()).getTime()+"",c.getTime(),"");
-                if (TaskCtrl.createTask(mContext,t)){
-                    for (int i = 0; i < tasks.size(); i++){
-                        if(tasks.get(i).getCreated() == null){
-                            tasks.add(i,t);
-                            break;
-                        }
+            }
+        }
+        notifyDataSetChanged();
+    }
+
+    public void markComplete(int position, boolean isToComplete){
+        Task t = TaskCtrl.markComplete(mContext, tasks.get(position), isToComplete);
+        if (t != null) {
+            if (isToComplete) {
+                tasks.remove(position);
+                tasks.add(t);
+                notifyDataSetChanged();
+                Toast.makeText(mContext, "Task Completed", Toast.LENGTH_SHORT).show();
+            } else {
+                tasks.remove(position);
+                for (int i = 0; i < tasks.size(); i++) {
+                    if (tasks.get(i).getCreated() == null) {
+                        tasks.add(i, t);
+                        break;
                     }
                 }
                 notifyDataSetChanged();
+                Toast.makeText(mContext, "Task Undo", Toast.LENGTH_SHORT).show();
             }
-        });
-        return view;
+        }
+    }
+
+    public void delete(final int i){
+        if (TaskCtrl.deleteTask(mContext,tasks.get(i).getId())){
+            tasks.remove(i);
+            Toast.makeText(mContext, "Task Deleted", Toast.LENGTH_SHORT).show();
+            notifyDataSetChanged();
+        }
     }
 
     public void clearFocus(){

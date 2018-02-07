@@ -1,9 +1,13 @@
 package com.is416.tasks;
 
 import android.content.Context;
+import android.support.design.widget.BottomSheetDialog;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.LinearLayout;
 
 import com.is416.tasks.adapter.TaskFragmentPagerAdapter;
 import com.is416.tasks.util.ActivityManager;
@@ -46,14 +50,24 @@ public class TasksActivity extends AppCompatActivity implements ViewPager.OnPage
 
     }
 
-    public boolean addTask(){
-        //
-        return true;
-    }
+    public void showBottomSheet(int position){
+        final BottomSheetDialog dialog=new BottomSheetDialog(mContext);
+        View dialogView= LayoutInflater.from(mContext).inflate(R.layout.bottom_sheet,null);
+        LinearLayout undo = dialogView.findViewById(R.id.undo);
+        LinearLayout delete = dialogView.findViewById(R.id.delete);
 
-    public boolean completeTask(){
-        //
-        return true;
+        undo.setOnClickListener((v) -> {
+            this.taskFragmentPagerAdapter.undo(position);
+            dialog.dismiss();
+        });
+
+        delete.setOnClickListener((v) -> {
+            this.taskFragmentPagerAdapter.deleteTask(position);
+            dialog.dismiss();
+        });
+
+        dialog.setContentView(dialogView);
+        dialog.show();
     }
 
     @Override

@@ -54,4 +54,12 @@ public class TaskFragmentPagerAdapter extends FragmentPagerAdapter {
         }
         return fragment;
     }
+
+    public void undo(int i){
+        this.todayTaskFragment.undo(i);
+    }
+
+    public void deleteTask(int i){
+        this.todayTaskFragment.deleteTask(i);
+    }
 }

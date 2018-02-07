@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.is416.tasks.R;
 import com.is416.tasks.TasksActivity;
@@ -68,11 +69,9 @@ public class TodayTaskFragment extends Fragment {
     }
 
     private void addListener(){
-        this.nextPage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((TasksActivity)ActivityManager.getActivity(master)).setViewPager(1);
-            }
+        this.nextPage.setOnClickListener(v -> ((TasksActivity)ActivityManager.getActivity(master)).setViewPager(1));
+        this.content.setOnItemClickListener((parent, view, position, id) -> {
+            ((TasksActivity)ActivityManager.getActivity(master)).showBottomSheet(position-1);
         });
     }
 
@@ -80,4 +79,13 @@ public class TodayTaskFragment extends Fragment {
         List<Task> tasks = TaskCtrl.getTasks(mContext, true);
         return tasks;
     }
+
+    public void undo(int i){
+        this.taskListAdapter.markComplete(i, false);
+    }
+
+    public void deleteTask(int i){
+        this.taskListAdapter.delete(i);
+    }
+
 }
