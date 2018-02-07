@@ -7,15 +7,23 @@ import java.util.Date;
  */
 
 public class Task {
+    private String id;
     private Date created;
     private String content;
-    private boolean isComplete;
-    private Date completed;
+    private Date completed = null;
 
-    public Task(Date created, String content, boolean isComplete) {
+    public Task(String id, Date created, String content) {
+        this.id = id;
         this.created = created;
         this.content = content;
-        this.isComplete = isComplete;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Date getCreated() {
@@ -43,11 +51,6 @@ public class Task {
     }
 
     public boolean isComplete() {
-        return isComplete;
-
-    }
-
-    public void setComplete(boolean complete) {
-        isComplete = complete;
+        return this.completed != null;
     }
 }

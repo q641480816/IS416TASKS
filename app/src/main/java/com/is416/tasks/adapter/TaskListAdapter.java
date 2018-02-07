@@ -3,6 +3,7 @@ package com.is416.tasks.adapter;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -13,13 +14,16 @@ import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.is416.tasks.R;
 import com.is416.tasks.TasksActivity;
+import com.is416.tasks.ctrl.TaskCtrl;
 import com.is416.tasks.model.Task;
 import com.is416.tasks.util.ActivityManager;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -30,6 +34,7 @@ import java.util.List;
 public class TaskListAdapter extends BaseAdapter {
 
     private List<Task> tasks;
+    private boolean isToday;
     private Context mContext;
     private String master;
     private int focusedETV;
@@ -40,6 +45,7 @@ public class TaskListAdapter extends BaseAdapter {
         this.tasks = tasks;
         this.mContext = mContext;
         this.master = master;
+        this.isToday = isToday;
     }
 
     @Override
@@ -76,6 +82,7 @@ public class TaskListAdapter extends BaseAdapter {
         return view;
     }
 
+    @SuppressLint("SetTextI18n")
     private View drawChecked(View view, Task task, int i){
         TextView tvc = view.findViewById(R.id.content);
         TextView tvt = view.findViewById(R.id.cTime);
@@ -85,43 +92,38 @@ public class TaskListAdapter extends BaseAdapter {
         return view;
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private View drawUnchecked(View view, final Task task, final int i){
         EditText etv = view.findViewById(R.id.content);
         ImageView checkbox = view.findViewById(R.id.checkbox);
-        checkbox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(((TasksActivity)ActivityManager.getActivity(master)).completeTask()){
-                    Task t = tasks.remove(i);
-                    t.setCompleted(new Date());
-                    t.setComplete(true);
-                    int index = 0;
-                    for(int i = 0; i < tasks.size(); i++){
-                        if(tasks.get(i).getCreated() == null){
-                            index = i;
-                            break;
-                        }
-                    }
-
-                    //TODO:
-                    tasks.add(index+1, t);
+        if (this.isToday) {
+            checkbox.setOnClickListener(v -> {
+                Task t = TaskCtrl.markComplete(mContext, tasks.get(i));
+                if (t != null) {
+                    tasks.remove(i);
+                    tasks.add(t);
+                    notifyDataSetChanged();
+                    Toast.makeText(mContext, "Task Completed", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }else{
+            checkbox.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_delete_black_24dp));
+            checkbox.setOnClickListener(v -> {
+                if (TaskCtrl.deleteTask(mContext,tasks.get(i).getId())){
+                    tasks.remove(i);
+                    Toast.makeText(mContext, "Task Deleted", Toast.LENGTH_SHORT).show();
                     notifyDataSetChanged();
                 }
-            }
-        });
+            });
+        }
         etv.setText(task.getContent());
         etv.addTextChangedListener(new TaskContentWatcher(i));
-        etv.setOnTouchListener(new View.OnTouchListener() {
-
-            @SuppressLint("ClickableViewAccessibility")
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                // TODO Auto-generated method stub
-                if(event.getAction()==MotionEvent.ACTION_UP){
-                    focusedETV = i;
-                }
-                return false;
+        etv.setOnTouchListener((v, event) -> {
+            // TODO Auto-generated method stub
+            if(event.getAction()==MotionEvent.ACTION_UP){
+                focusedETV = i;
             }
+            return false;
         });
         if (this.focusedETV != -1 && this.focusedETV == i){
             etv.setSelection(etv.getText().length());
@@ -131,22 +133,23 @@ public class TaskListAdapter extends BaseAdapter {
 
     private View drawSeparator(View view){
         TextView tv = view.findViewById(R.id.addTask);
-        tv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(((TasksActivity)ActivityManager.getActivity(master)).addTask()){
-                    int index = 0;
-                    for(int i = 0; i < tasks.size(); i++){
+        tv.setTypeface(null, Typeface.ITALIC);
+        tv.setOnClickListener(v -> {
+            if(((TasksActivity)ActivityManager.getActivity(master)).addTask()){
+                Calendar c = Calendar.getInstance();
+                if (!this.isToday){
+                    c.add(Calendar.DAY_OF_MONTH,1);
+                }
+                Task t = new Task((new Date()).getTime()+"",c.getTime(),"");
+                if (TaskCtrl.createTask(mContext,t)){
+                    for (int i = 0; i < tasks.size(); i++){
                         if(tasks.get(i).getCreated() == null){
-                            index = i;
+                            tasks.add(i,t);
                             break;
                         }
                     }
-
-                    //TODO:
-                    tasks.add(index,new Task(new Date()," new" + index, false));
-                    notifyDataSetChanged();
                 }
+                notifyDataSetChanged();
             }
         });
         return view;
@@ -170,12 +173,14 @@ public class TaskListAdapter extends BaseAdapter {
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             //TODO
-            tasks.get(index).setContent(s.toString());
+            if (TaskCtrl.updateContent(mContext,tasks.get(index),s.toString())){
+                tasks.get(index).setContent(s.toString());
+            }
         }
 
         @Override
         public void afterTextChanged(Editable editable) {
-
+            //System.out.println(editable.toString());
         }
     }
 }

@@ -14,11 +14,10 @@ import android.widget.TextView;
 import com.is416.tasks.R;
 import com.is416.tasks.TasksActivity;
 import com.is416.tasks.adapter.TaskListAdapter;
+import com.is416.tasks.ctrl.TaskCtrl;
 import com.is416.tasks.model.Task;
 import com.is416.tasks.util.ActivityManager;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -78,11 +77,7 @@ public class TodayTaskFragment extends Fragment {
     }
 
     private List<Task> getTasks(){
-        List<Task> tasks = new ArrayList<>();
-        for (int i = 0; i < 3; i++){
-            tasks.add(new Task(new Date(), "test 1", false));
-        }
-        tasks.add(new Task(null, "test 1", false));
+        List<Task> tasks = TaskCtrl.getTasks(mContext, true);
         return tasks;
     }
 }
