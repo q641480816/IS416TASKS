@@ -10,15 +10,15 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.is416.tasks.R;
 import com.is416.tasks.TasksActivity;
 import com.is416.tasks.adapter.TaskListAdapter;
+import com.is416.tasks.ctrl.TaskCtrl;
 import com.is416.tasks.model.Task;
 import com.is416.tasks.util.ActivityManager;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -69,20 +69,23 @@ public class TodayTaskFragment extends Fragment {
     }
 
     private void addListener(){
-        this.nextPage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((TasksActivity)ActivityManager.getActivity(master)).setViewPager(1);
-            }
+        this.nextPage.setOnClickListener(v -> ((TasksActivity)ActivityManager.getActivity(master)).setViewPager(1));
+        this.content.setOnItemClickListener((parent, view, position, id) -> {
+            ((TasksActivity)ActivityManager.getActivity(master)).showBottomSheet(position-1);
         });
     }
 
     private List<Task> getTasks(){
-        List<Task> tasks = new ArrayList<>();
-        for (int i = 0; i < 3; i++){
-            tasks.add(new Task(new Date(), "test 1", false));
-        }
-        tasks.add(new Task(null, "test 1", false));
+        List<Task> tasks = TaskCtrl.getTasks(mContext, true);
         return tasks;
     }
+
+    public void undo(int i){
+        this.taskListAdapter.markComplete(i, false);
+    }
+
+    public void deleteTask(int i){
+        this.taskListAdapter.delete(i);
+    }
+
 }

@@ -4,4 +4,9 @@
     <string name="add_task"> + Add Task</string>
     <string name="complete_time">Completed at </string>
     <string name="today">Today\'s Tasks</string>
+    <string name="tomorrow">Tomorrow\'s Tasks</string>
+
+    <!-- bottom sheet -->
+    <string name="bt_undo">Undo</string>
+    <string name="bt_delete">Delete</string>
 </resources>
