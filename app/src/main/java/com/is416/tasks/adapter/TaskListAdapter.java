@@ -10,7 +10,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -18,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.is416.tasks.R;
-import com.is416.tasks.TasksActivity;
 import com.is416.tasks.ctrl.TaskCtrl;
 import com.is416.tasks.model.Task;
 import com.is416.tasks.util.ActivityManager;
@@ -34,6 +33,10 @@ import java.util.List;
 
 public class TaskListAdapter extends BaseAdapter {
 
+    private static final int TYPE_UNCHECKED = 0;
+    private static final int TYPE_CHECKED = 1;
+    private static final int TYPE_SEPARATOR = 2;
+
     private List<Task> tasks;
     private boolean isToday;
     private Context mContext;
@@ -41,12 +44,14 @@ public class TaskListAdapter extends BaseAdapter {
     private int focusedETV;
     private SimpleDateFormat sdf = new SimpleDateFormat(" HH:mm");
     private int oldLength;
+    private InputMethodManager imm;
 
     public TaskListAdapter(List<Task> tasks, Context mContext, String master, boolean isToday) {
         this.tasks = tasks;
         this.mContext = mContext;
         this.master = master;
         this.isToday = isToday;
+        imm = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
     }
 
     @Override
@@ -69,49 +74,117 @@ public class TaskListAdapter extends BaseAdapter {
         return tasks.get(i).isComplete();
     }
 
+    @Override
+    public int getViewTypeCount() {
+        return 3;
+    }
 
+    @Override
+    public int getItemViewType(int position) {
+        if(tasks.get(position).getCreated() == null){
+            return TYPE_SEPARATOR;
+        }else if(tasks.get(position).isComplete()){
+            return TYPE_CHECKED;
+        }else if(!tasks.get(position).isComplete()){
+            return TYPE_UNCHECKED;
+        }else {
+            return super.getItemViewType(position);
+        }
+    }
 
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
+        int type = getItemViewType(i);
         Task t = tasks.get(i);
-        //System.out.println(oldLength - tasks.size());
-        if(t.getCreated() == null){
-            view = drawSeparator(LayoutInflater.from(mContext).inflate(R.layout.list_seprater,viewGroup,false));
-        }else if(t.isComplete()){
-            view = drawChecked(LayoutInflater.from(mContext).inflate(R.layout.task_item_checked,viewGroup,false),t, i);
+        ViewHolderSeparator separator = null;
+        ViewHolderChecked checked = null;
+        ViewHolderUnchecked unchecked = null;
+
+        if(view == null){
+            switch (type){
+                case TYPE_SEPARATOR:
+                    separator = new ViewHolderSeparator();
+                    view = LayoutInflater.from(mContext).inflate(R.layout.list_seprater, viewGroup, false);
+                    separator.tv = view.findViewById(R.id.addTask);
+                    view.setTag(R.id.Tag_Separator,separator);
+                    break;
+                case TYPE_CHECKED:
+                    checked = new ViewHolderChecked();
+                    view = LayoutInflater.from(mContext).inflate(R.layout.task_item_checked, viewGroup, false);
+                    checked.tvc = view.findViewById(R.id.content);
+                    checked.tvt = view.findViewById(R.id.cTime);
+                    view.setTag(R.id.Tag_Checked,checked);
+                    break;
+                case TYPE_UNCHECKED:
+                    unchecked = new ViewHolderUnchecked();
+                    view = LayoutInflater.from(mContext).inflate(R.layout.task_item_uncheck, viewGroup, false);
+                    unchecked.etv = view.findViewById(R.id.content);
+                    unchecked.checkbox = view.findViewById(R.id.checkbox);
+                    view.setTag(R.id.Tag_Unchecked,unchecked);
+                    break;
+            }
         }else{
-            view = drawUnchecked(LayoutInflater.from(mContext).inflate(R.layout.task_item_uncheck,viewGroup,false),t, i);
+            switch (type){
+                case TYPE_SEPARATOR:
+                    separator = (ViewHolderSeparator) view.getTag(R.id.Tag_Separator);
+                    break;
+                case TYPE_CHECKED:
+                    checked = (ViewHolderChecked) view.getTag(R.id.Tag_Checked);
+                    break;
+                case TYPE_UNCHECKED:
+                    //return view;
+                    unchecked = (ViewHolderUnchecked) view.getTag(R.id.Tag_Unchecked);
+                    break;
+            }
         }
+
+        switch (type){
+            case TYPE_SEPARATOR:
+                separator = drawSeparator((ViewHolderSeparator) view.getTag(R.id.Tag_Separator));
+                break;
+            case TYPE_CHECKED:
+                checked = drawChecked((ViewHolderChecked) view.getTag(R.id.Tag_Checked), t, i);
+                break;
+            case TYPE_UNCHECKED:
+                unchecked = drawUnchecked((ViewHolderUnchecked) view.getTag(R.id.Tag_Unchecked), t,i);
+                break;
+        }
+
+        //if(t.getCreated() == null){
+      //      view = drawSeparator(LayoutInflater.from(mContext).inflate(R.layout.list_seprater,viewGroup,false));
+       // }else if(t.isComplete()){
+       //     view = drawChecked(LayoutInflater.from(mContext).inflate(R.layout.task_item_checked,viewGroup,false),t, i);
+       // }else{
+      //      view = drawUnchecked(LayoutInflater.from(mContext).inflate(R.layout.task_item_uncheck,viewGroup,false),t, i);
+      //  }
         return view;
     }
 
     @SuppressLint("SetTextI18n")
-    private View drawChecked(View view, Task task, int i){
-        TextView tvc = view.findViewById(R.id.content);
-        TextView tvt = view.findViewById(R.id.cTime);
-        tvc.setText(task.getContent());
-        tvc.getPaint().setFlags(Paint.STRIKE_THRU_TEXT_FLAG);
-        tvt.setText(mContext.getResources().getString(R.string.complete_time) + sdf.format(task.getCompleted()));
-        return view;
+    private ViewHolderChecked drawChecked(ViewHolderChecked holder, Task task, int i){
+        holder.tvc.setText(task.getContent());
+        holder.tvc.getPaint().setFlags(Paint.STRIKE_THRU_TEXT_FLAG);
+        holder.tvt.setText(mContext.getResources().getString(R.string.complete_time) + sdf.format(task.getCompleted()));
+        return holder;
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private View drawUnchecked(View view, final Task task, final int i){
-        EditText etv = view.findViewById(R.id.content);
-        ImageView checkbox = view.findViewById(R.id.checkbox);
+    private ViewHolderUnchecked drawUnchecked(ViewHolderUnchecked holder, final Task task, final int i){
         if (this.isToday) {
-            checkbox.setOnClickListener(v -> {
+            holder.checkbox.setOnClickListener(v -> {
                 markComplete(i, true);
             });
         }else{
-            checkbox.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_delete_black_24dp));
-            checkbox.setOnClickListener(v -> {
+            holder.checkbox.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_delete_black_24dp));
+            holder.checkbox.setOnClickListener(v -> {
                 delete(i);
             });
         }
-        etv.setText(task.getContent());
-        etv.addTextChangedListener(new TaskContentWatcher(i));
-        etv.setOnTouchListener((v, event) -> {
+        if (!holder.etv.getText().toString().equals(tasks.get(i).getContent())){
+            holder.etv.setText(task.getContent());
+        }
+        holder.etv.addTextChangedListener(new TaskContentWatcher(i));
+        holder.etv.setOnTouchListener((v, event) -> {
             // TODO Auto-generated method stub
             if(event.getAction()==MotionEvent.ACTION_UP){
                 focusedETV = i;
@@ -119,21 +192,23 @@ public class TaskListAdapter extends BaseAdapter {
             return false;
         });
         if (this.focusedETV != -1 && this.focusedETV == i){
-            etv.setSelection(etv.getText().length());
+            //holder.etv.setSelection(holder.etv.getText().length());
         }
-        return view;
+        return holder;
     }
 
-    private View drawSeparator(View view){
-        TextView tv = view.findViewById(R.id.addTask);
-        tv.setTypeface(null, Typeface.ITALIC);
-        tv.setOnClickListener(v -> {
+    private ViewHolderSeparator drawSeparator(ViewHolderSeparator holder){
+        holder.tv.setTypeface(null, Typeface.ITALIC);
+        holder.tv.setOnClickListener(v -> {
             create();
         });
-        return view;
+        return holder;
     }
 
     public void create(){
+        if (imm.isActive()){
+            imm.hideSoftInputFromWindow(ActivityManager.getActivity(master).getCurrentFocus().getWindowToken(), 0);
+        }
         Calendar c = Calendar.getInstance();
         if (!this.isToday){
             c.add(Calendar.DAY_OF_MONTH,1);
@@ -152,6 +227,9 @@ public class TaskListAdapter extends BaseAdapter {
 
     public void markComplete(int position, boolean isToComplete){
         Task t = TaskCtrl.markComplete(mContext, tasks.get(position), isToComplete);
+        if (imm.isActive()){
+            imm.hideSoftInputFromWindow(ActivityManager.getActivity(master).getCurrentFocus().getWindowToken(), 0);
+        }
         if (t != null) {
             if (isToComplete) {
                 tasks.remove(position);
@@ -174,10 +252,27 @@ public class TaskListAdapter extends BaseAdapter {
 
     public void delete(final int i){
         if (TaskCtrl.deleteTask(mContext,tasks.get(i).getId())){
+            if (imm.isActive()){
+                imm.hideSoftInputFromWindow(ActivityManager.getActivity(master).getCurrentFocus().getWindowToken(), 0);
+            }
             tasks.remove(i);
             Toast.makeText(mContext, "Task Deleted", Toast.LENGTH_SHORT).show();
             notifyDataSetChanged();
         }
+    }
+
+    private static class ViewHolderSeparator{
+        TextView tv;
+    }
+
+    private static class ViewHolderChecked{
+        TextView tvc;
+        TextView tvt;
+    }
+
+    private static class ViewHolderUnchecked{
+        EditText etv;
+        ImageView checkbox;
     }
 
     public void clearFocus(){
