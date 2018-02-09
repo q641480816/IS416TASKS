@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -38,6 +39,7 @@ public class TodayTaskFragment extends Fragment {
     private TextView header;
     private RelativeLayout nextPage;
     private LinearLayout shadow;
+    private InputMethodManager imm;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mainView = inflater.inflate(R.layout.task_fragment, container, false);
@@ -53,6 +55,7 @@ public class TodayTaskFragment extends Fragment {
         this.mContext = ((TasksActivity) ActivityManager.getActivity("TASK_LIST_ACTIVITY")).getContext();
         this.tasks = getTasks();
         this.taskListAdapter = new TaskListAdapter(this.tasks,this.mContext, master, true);
+        this.imm = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
     }
 
     private void bindView(){
@@ -69,7 +72,12 @@ public class TodayTaskFragment extends Fragment {
     }
 
     private void addListener(){
-        this.nextPage.setOnClickListener(v -> ((TasksActivity)ActivityManager.getActivity(master)).setViewPager(1));
+        this.nextPage.setOnClickListener(v -> {
+            if (imm.isActive()){
+                imm.hideSoftInputFromWindow(ActivityManager.getActivity(master).getCurrentFocus().getWindowToken(), 0);
+            }
+            ((TasksActivity)ActivityManager.getActivity(master)).setViewPager(1);
+        });
         this.content.setOnItemClickListener((parent, view, position, id) -> {
             ((TasksActivity)ActivityManager.getActivity(master)).showBottomSheet(position-1);
         });
