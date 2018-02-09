@@ -5,6 +5,7 @@ import android.os.Build;
 
 import com.is416.tasks.dao.TaskDao;
 import com.is416.tasks.model.Task;
+import com.is416.tasks.util.LockFactory;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -84,7 +85,10 @@ public class TaskCtrl {
     public static boolean updateContent(Context context, Task task, String content){
         HashMap<String, String> changes = new HashMap<>();
         changes.put("content", content);
-        return TaskDao.updateTask(context,changes,task.getId());
+        LockFactory.getReadWriteLock("updateContent" + task.getId()).writeLock().lock();
+        boolean isOk = TaskDao.updateTask(context,changes,task.getId());
+        LockFactory.getReadWriteLock("updateContent" + task.getId()).writeLock().unlock();
+        return isOk;
     }
 
     public static boolean deleteTask(Context context, String id){

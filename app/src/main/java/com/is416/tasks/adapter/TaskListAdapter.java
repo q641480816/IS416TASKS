@@ -289,14 +289,32 @@ public class TaskListAdapter extends BaseAdapter {
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             //TODO
-            if (TaskCtrl.updateContent(mContext,tasks.get(index),s.toString())){
-                tasks.get(index).setContent(s.toString());
-            }
+            tasks.get(index).setContent(s.toString());
+            SaveText saveText = new SaveText(mContext,tasks.get(index),s.toString());
+            Thread t = new Thread(saveText);
+            t.run();
         }
 
         @Override
         public void afterTextChanged(Editable editable) {
             //System.out.println(editable.toString());
+        }
+    }
+
+    private class SaveText implements Runnable {
+        Context context;
+        Task task;
+        String value;
+
+        public SaveText(Context context, Task task, String value) {
+            this.context = context;
+            this.task = task;
+            this.value = value;
+        }
+
+        @Override
+        public void run() {
+            TaskCtrl.updateContent(mContext,task,value);
         }
     }
 }
