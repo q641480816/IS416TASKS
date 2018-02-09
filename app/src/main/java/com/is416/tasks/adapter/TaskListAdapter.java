@@ -10,10 +10,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
-import android.view.animation.ScaleAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
@@ -50,14 +46,12 @@ public class TaskListAdapter extends BaseAdapter {
     private SimpleDateFormat sdf = new SimpleDateFormat(" HH:mm");
     private int oldLength;
     private InputMethodManager imm;
-    private HashMap<Integer, View> allViews;
 
     public TaskListAdapter(List<Task> tasks, Context mContext, String master, boolean isToday) {
         this.tasks = tasks;
         this.mContext = mContext;
         this.master = master;
         this.isToday = isToday;
-        this.allViews = new HashMap<>();
         imm = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
     }
 
@@ -157,12 +151,12 @@ public class TaskListAdapter extends BaseAdapter {
         }
 
         //
-        this.allViews.put(i,view);
         return view;
     }
 
     @SuppressLint("SetTextI18n")
     private ViewHolderChecked drawChecked(ViewHolderChecked holder, Task task, int i){
+        System.out.println("test");
         holder.tvc.setText(task.getContent());
         holder.tvc.getPaint().setFlags(Paint.STRIKE_THRU_TEXT_FLAG);
         holder.tvt.setText(mContext.getResources().getString(R.string.complete_time) + sdf.format(task.getCompleted()));
@@ -232,32 +226,22 @@ public class TaskListAdapter extends BaseAdapter {
             imm.hideSoftInputFromWindow(ActivityManager.getActivity(master).getCurrentFocus().getWindowToken(), 0);
         }
         if (t != null) {
-            Toast.makeText(mContext, isToComplete ? "Task Completed" : "Task Undo", Toast.LENGTH_SHORT).show();
-            AnimationSet animationSet = getAnimation();
-            animationSet.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {}
-                @Override
-                public void onAnimationRepeat(Animation animation) {}
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    if (isToComplete) {
-                        tasks.remove(position);
-                        tasks.add(t);
-                        notifyDataSetChanged();
-                    } else {
-                        tasks.remove(position);
-                        for (int i = 0; i < tasks.size(); i++) {
-                            if (tasks.get(i).getCreated() == null) {
-                                tasks.add(i, t);
-                                break;
-                            }
-                        }
-                        notifyDataSetChanged();
+            if (isToComplete) {
+                tasks.remove(position);
+                tasks.add(t);
+                notifyDataSetChanged();
+                Toast.makeText(mContext, "Task Completed", Toast.LENGTH_SHORT).show();
+            } else {
+                tasks.remove(position);
+                for (int i = 0; i < tasks.size(); i++) {
+                    if (tasks.get(i).getCreated() == null) {
+                        tasks.add(i, t);
+                        break;
                     }
                 }
-            });
-            allViews.get(position).startAnimation(animationSet);
+                notifyDataSetChanged();
+                Toast.makeText(mContext, "Task Undo", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -268,19 +252,8 @@ public class TaskListAdapter extends BaseAdapter {
             }
             Toast.makeText(mContext, "Task Deleted", Toast.LENGTH_SHORT).show();
             //TODO: add animation
-            AnimationSet animationSet = getAnimation();
-            animationSet.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {}
-                @Override
-                public void onAnimationRepeat(Animation animation) {}
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    tasks.remove(i);
-                    notifyDataSetChanged();
-                }
-            });
-            allViews.get(i).startAnimation(animationSet);
+            tasks.remove(i);
+            notifyDataSetChanged();
         }
     }
 
@@ -300,15 +273,6 @@ public class TaskListAdapter extends BaseAdapter {
 
     public void clearFocus(){
         focusedETV = -1;
-    }
-
-    private AnimationSet getAnimation(){
-        AnimationSet animationSet = new AnimationSet(true);
-        AlphaAnimation alphaAnimation = new AlphaAnimation(1, 0);
-        alphaAnimation.setDuration(250);
-        animationSet.addAnimation(alphaAnimation);
-        animationSet.setFillBefore(true);
-        return animationSet;
     }
 
     private class TaskContentWatcher implements TextWatcher {
