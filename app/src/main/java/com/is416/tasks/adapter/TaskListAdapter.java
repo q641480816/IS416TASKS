@@ -10,6 +10,10 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.ScaleAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
@@ -25,6 +29,7 @@ import com.is416.tasks.util.ActivityManager;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -45,12 +50,14 @@ public class TaskListAdapter extends BaseAdapter {
     private SimpleDateFormat sdf = new SimpleDateFormat(" HH:mm");
     private int oldLength;
     private InputMethodManager imm;
+    private HashMap<Integer, View> allViews;
 
     public TaskListAdapter(List<Task> tasks, Context mContext, String master, boolean isToday) {
         this.tasks = tasks;
         this.mContext = mContext;
         this.master = master;
         this.isToday = isToday;
+        this.allViews = new HashMap<>();
         imm = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
     }
 
@@ -132,7 +139,6 @@ public class TaskListAdapter extends BaseAdapter {
                     checked = (ViewHolderChecked) view.getTag(R.id.Tag_Checked);
                     break;
                 case TYPE_UNCHECKED:
-                    //return view;
                     unchecked = (ViewHolderUnchecked) view.getTag(R.id.Tag_Unchecked);
                     break;
             }
@@ -150,13 +156,8 @@ public class TaskListAdapter extends BaseAdapter {
                 break;
         }
 
-        //if(t.getCreated() == null){
-      //      view = drawSeparator(LayoutInflater.from(mContext).inflate(R.layout.list_seprater,viewGroup,false));
-       // }else if(t.isComplete()){
-       //     view = drawChecked(LayoutInflater.from(mContext).inflate(R.layout.task_item_checked,viewGroup,false),t, i);
-       // }else{
-      //      view = drawUnchecked(LayoutInflater.from(mContext).inflate(R.layout.task_item_uncheck,viewGroup,false),t, i);
-      //  }
+        //
+        this.allViews.put(i,view);
         return view;
     }
 
@@ -231,22 +232,32 @@ public class TaskListAdapter extends BaseAdapter {
             imm.hideSoftInputFromWindow(ActivityManager.getActivity(master).getCurrentFocus().getWindowToken(), 0);
         }
         if (t != null) {
-            if (isToComplete) {
-                tasks.remove(position);
-                tasks.add(t);
-                notifyDataSetChanged();
-                Toast.makeText(mContext, "Task Completed", Toast.LENGTH_SHORT).show();
-            } else {
-                tasks.remove(position);
-                for (int i = 0; i < tasks.size(); i++) {
-                    if (tasks.get(i).getCreated() == null) {
-                        tasks.add(i, t);
-                        break;
+            Toast.makeText(mContext, isToComplete ? "Task Completed" : "Task Undo", Toast.LENGTH_SHORT).show();
+            AnimationSet animationSet = getAnimation();
+            animationSet.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {}
+                @Override
+                public void onAnimationRepeat(Animation animation) {}
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    if (isToComplete) {
+                        tasks.remove(position);
+                        tasks.add(t);
+                        notifyDataSetChanged();
+                    } else {
+                        tasks.remove(position);
+                        for (int i = 0; i < tasks.size(); i++) {
+                            if (tasks.get(i).getCreated() == null) {
+                                tasks.add(i, t);
+                                break;
+                            }
+                        }
+                        notifyDataSetChanged();
                     }
                 }
-                notifyDataSetChanged();
-                Toast.makeText(mContext, "Task Undo", Toast.LENGTH_SHORT).show();
-            }
+            });
+            allViews.get(position).startAnimation(animationSet);
         }
     }
 
@@ -255,9 +266,21 @@ public class TaskListAdapter extends BaseAdapter {
             if (imm.isActive()){
                 imm.hideSoftInputFromWindow(ActivityManager.getActivity(master).getCurrentFocus().getWindowToken(), 0);
             }
-            tasks.remove(i);
             Toast.makeText(mContext, "Task Deleted", Toast.LENGTH_SHORT).show();
-            notifyDataSetChanged();
+            //TODO: add animation
+            AnimationSet animationSet = getAnimation();
+            animationSet.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {}
+                @Override
+                public void onAnimationRepeat(Animation animation) {}
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    tasks.remove(i);
+                    notifyDataSetChanged();
+                }
+            });
+            allViews.get(i).startAnimation(animationSet);
         }
     }
 
@@ -277,6 +300,15 @@ public class TaskListAdapter extends BaseAdapter {
 
     public void clearFocus(){
         focusedETV = -1;
+    }
+
+    private AnimationSet getAnimation(){
+        AnimationSet animationSet = new AnimationSet(true);
+        AlphaAnimation alphaAnimation = new AlphaAnimation(1, 0);
+        alphaAnimation.setDuration(250);
+        animationSet.addAnimation(alphaAnimation);
+        animationSet.setFillBefore(true);
+        return animationSet;
     }
 
     private class TaskContentWatcher implements TextWatcher {
