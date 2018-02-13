@@ -17,6 +17,8 @@ import com.is416.tasks.TasksActivity;
 import com.is416.tasks.util.ActivityManager;
 import com.is416.tasks.util.SharedPreferenceManager;
 
+import java.util.Calendar;
+
 /**
  * Created by Gods on 2/13/2018.
  */
@@ -97,11 +99,23 @@ public class ReminderDialog extends Dialog{
         });
 
         this.edit_reminder.setOnClickListener((v)->{
+            int initH = 0;
+            int initM = 0;
+            String time = SharedPreferenceManager.get("reminder",mContext);
+            if (time.equals(SharedPreferenceManager.nullable)){
+                Calendar c = Calendar.getInstance();
+                initH = c.get(Calendar.HOUR_OF_DAY);
+                initM = c.get(Calendar.MINUTE);
+            }else{
+                String[] timeSet = time.split(":");
+                initH = Integer.parseInt(timeSet[0]);
+                initM = Integer.parseInt(timeSet[1]);
+            }
             TimePickerDialog timeDialog = new TimePickerDialog(mContext,(view, hourOfDay, minute) -> {
                 String min = minute < 10 ? "0" + minute : minute + "";
                 String h = hourOfDay < 10 ? "0" + hourOfDay : "" + hourOfDay;
                 this.reminder_content.setText(h + ":" + min);
-            }, 0, 0, true);
+            }, initH, initM, true);
             timeDialog.show();
         });
     }
