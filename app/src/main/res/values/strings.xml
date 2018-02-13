@@ -10,4 +10,11 @@
     <string name="bt_undo">Undo</string>
     <string name="bt_delete">Delete</string>
 
+    <!-- null reminder-->
+    <string name="reminder_not_set">Reminder not set</string>
+    <string name="edit_reminder">Edit Reminder</string>
+    <string name="reminder_delete">Delete</string>
+    <string name="reminder_save">Save</string>
+    <string name="reminder_cancel">Cancel</string>
+
 </resources>

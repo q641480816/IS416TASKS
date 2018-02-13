@@ -6,12 +6,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.is416.tasks.model.Task;
-import com.is416.tasks.util.TaskDBOpenHelper;
+import com.is416.tasks.util.TaskDBManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -26,7 +25,7 @@ public class TaskDao {
 
     public static boolean createTask(Context context, Task task) {
         try {
-            TaskDBOpenHelper dbOpenHelper = new TaskDBOpenHelper(context);
+            TaskDBManager dbOpenHelper = new TaskDBManager(context);
             SQLiteDatabase db = dbOpenHelper.getWritableDatabase();
             ContentValues values = new ContentValues();
             values.put("id",task.getId());
@@ -43,7 +42,7 @@ public class TaskDao {
     public static List<Task> getTask(Context context, boolean isToday){
         List<Task> tasks = new ArrayList<>();
         try {
-            TaskDBOpenHelper dbOpenHelper = new TaskDBOpenHelper(context);
+            TaskDBManager dbOpenHelper = new TaskDBManager(context);
             SQLiteDatabase db = dbOpenHelper.getWritableDatabase();
             Calendar c = Calendar.getInstance();
             if (!isToday){
@@ -70,7 +69,7 @@ public class TaskDao {
 
     public static boolean updateTask(Context context, HashMap<String, String> changes, String id){
         try{
-            TaskDBOpenHelper dbOpenHelper = new TaskDBOpenHelper(context);
+            TaskDBManager dbOpenHelper = new TaskDBManager(context);
             SQLiteDatabase db = dbOpenHelper.getWritableDatabase();
             ContentValues values = new ContentValues();
             for(String k : changes.keySet()){
@@ -85,7 +84,7 @@ public class TaskDao {
 
     public static boolean deleteTask(Context context,String id) {
         try {
-            TaskDBOpenHelper dbOpenHelper = new TaskDBOpenHelper(context);
+            TaskDBManager dbOpenHelper = new TaskDBManager(context);
             SQLiteDatabase db = dbOpenHelper.getWritableDatabase();
 
             db.delete(table, "id = ?", new String[] {id});

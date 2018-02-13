@@ -8,11 +8,11 @@ import android.database.sqlite.SQLiteOpenHelper;
  * Created by Gods on 2/6/2018.
  */
 
-public class TaskDBOpenHelper extends SQLiteOpenHelper {
+public class TaskDBManager extends SQLiteOpenHelper {
     private static final int DB_VERSION = 1;
     private static final String db = "task.db";
 
-    public TaskDBOpenHelper(Context context) {
+    public TaskDBManager(Context context) {
         super(context, db, null, DB_VERSION);
     }
 

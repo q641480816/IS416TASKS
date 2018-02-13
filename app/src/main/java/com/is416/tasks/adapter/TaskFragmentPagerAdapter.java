@@ -62,4 +62,8 @@ public class TaskFragmentPagerAdapter extends FragmentPagerAdapter {
     public void deleteTask(int i){
         this.todayTaskFragment.deleteTask(i);
     }
+
+    public void updateReminder(){
+        this.todayTaskFragment.updateReminder();
+    }
 }
