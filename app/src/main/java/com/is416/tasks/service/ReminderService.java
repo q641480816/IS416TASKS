@@ -19,6 +19,7 @@ import com.is416.tasks.R;
 import com.is416.tasks.TasksActivity;
 import com.is416.tasks.ctrl.TaskCtrl;
 import com.is416.tasks.model.Task;
+import com.is416.tasks.util.AlarmSetter;
 import com.is416.tasks.util.SharedPreferenceManager;
 
 import java.util.ArrayList;
@@ -92,9 +93,8 @@ public class ReminderService extends Service {
         Notification.Builder mBuilder = new Notification.Builder(this);
         Bitmap largeBitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.icon);
         mBuilder.setContentTitle("Tasks")
-                .setContentText("")
+                .setContentText("You have " + unchecked.size() + " task(s) need to complete.")
                 .setSubText(unchecked.size() == 0 ? "Good let's plan tomorrow's task!" : "Remember to finish them oh!")
-                .setTicker("You have " + unchecked.size() + " tasks need to complete.")
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.mipmap.icon)
                 .setLargeIcon(largeBitmap)
@@ -108,9 +108,6 @@ public class ReminderService extends Service {
     private void setReminder(){
         AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
         this.expected.add(Calendar.DAY_OF_MONTH, 1);
-
-        Intent i = new Intent(this, ReminderReceiver.class);
-        PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, 0);
-        manager.set(AlarmManager.RTC_WAKEUP,this.expected.getTimeInMillis(),pi);
+        AlarmSetter.setAlarm(expected, manager, mContext);
     }
 }

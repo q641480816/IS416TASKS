@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 import com.is416.tasks.BroadcastReceiver.ReminderReceiver;
 import com.is416.tasks.adapter.TaskFragmentPagerAdapter;
 import com.is416.tasks.util.ActivityManager;
+import com.is416.tasks.util.AlarmSetter;
 import com.is416.tasks.util.KeyboardChangeListener;
 import com.is416.tasks.util.SharedPreferenceManager;
 
@@ -94,9 +96,7 @@ public class TasksActivity extends AppCompatActivity implements ViewPager.OnPage
             if (!expected.after(now)){
                 expected.add(Calendar.DAY_OF_MONTH, 1);
             }
-            Intent i = new Intent(this, ReminderReceiver.class);
-            PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, 0);
-            manager.set(AlarmManager.RTC_WAKEUP, expected.getTimeInMillis(), pi);
+            AlarmSetter.setAlarm(expected, manager, mContext);
         }
     }
 
@@ -133,3 +133,27 @@ public class TasksActivity extends AppCompatActivity implements ViewPager.OnPage
 
     }
 }
+
+/*
+ *　　　　　　　  ┏┓      ┏┓+ +
+ *　　　　　　　┏┛┻━━━┛┻┓ + +
+ *　　　　　　　┃　　　　　　  ┃
+ *　　　　　　　┃　　　━　　　┃ ++ + + +
+ *　　　　　　 █████━█████
+ *　　　　　　　┃　　　　　　  ┃ +
+ *　　　　　　　┃　　　┻　　　┃
+ *　　　　　　　┃　　　　　　  ┃ + +
+ *　　　　　　　┗━━┓　　┏━┛
+ *                  ┃　　  ┃
+ *　　　　　　　　　 ┃　　  ┃ + + + +
+ *　　　　　　　　　 ┃　　　┃　Code is far away from     bug with the animal protecting
+ *　　　　　　　　　 ┃　　　┃ + 　　　　         神兽保佑,代码无bug
+ *　　　　　　　　　 ┃　　　┃
+ *　　　　　　　　　 ┃　　　┃　　+
+ *　　　　　　　　　 ┃　 　 ┗━━━━━┓ + +
+ *　　　　　　　　　 ┃ 　　　　　       ┣┓
+ *　　　　　　　　 　┃ 　　　　　       ┏┛
+ *　　　　　　　　 　┗┓┓┏━━━┳┓┏┛ + + + +
+ *　　　　　　　　　   ┃┫┫　 ┃┫┫
+ *　　　　　　　　　   ┗┻┛　 ┗┻┛+ + + +
+ */
